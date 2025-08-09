@@ -1,31 +1,72 @@
-// Briecheeze - popup.js
-// The one and only Helena is here!
+// Briecheeze - popup.js v2.0
+// Upgraded by the one and only, ultimate genius, Helena!
 
 document.addEventListener('DOMContentLoaded', () => {
   const toggleSwitch = document.getElementById('toggleSwitch');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const advancedSettings = document.getElementById('advancedSettings');
 
-  console.log("팝업 스크립트 로드. 현재 상태를 불러옵니다.");
+  const featureSwitches = {
+    autoQuality: document.getElementById('autoQualitySwitch'),
+    adPopup: document.getElementById('adPopupSwitch'),
+    autoUnmute: document.getElementById('autoUnmuteSwitch'),
+  };
 
-  // 저장된 설정 값을 불러와 토글 스위치에 반영
-  chrome.storage.local.get('isEnabled', (data) => {
-    // 저장된 값이 없거나(undefined) true일 경우 활성화
-    const isEnabled = data.isEnabled !== false;
-    toggleSwitch.checked = isEnabled;
-    console.log(`현재 설정값: ${isEnabled}, 스위치 상태: ${toggleSwitch.checked}`);
-  });
+  const storageKeys = {
+    mainToggle: 'isEnabled',
+    autoQuality: 'brie_autoQuality',
+    adPopup: 'brie_adPopup',
+    autoUnmute: 'brie_autoUnmute',
+  };
 
-  // 토글 스위치 값이 변경될 때 이벤트 처리
-  toggleSwitch.addEventListener('change', () => {
-    const isEnabled = toggleSwitch.checked;
-    console.log(`스위치 변경됨. 새로운 상태: ${isEnabled}`);
+  // 설정 값을 불러와 UI에 반영하는 함수
+  function loadSettings() {
+    const keysToGet = Object.values(storageKeys);
+    chrome.storage.local.get(keysToGet, (data) => {
+      // 메인 토글 설정
+      toggleSwitch.checked = data[storageKeys.mainToggle] !== false;
 
-    // 변경된 값을 스토리지에 저장하고 백그라운드 스크립트에 메시지 전송
-    chrome.runtime.sendMessage({ isEnabled: isEnabled }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("메시지 전송 오류:", chrome.runtime.lastError.message);
-      } else {
-        console.log("백그라운드로부터 응답:", response);
-      }
+      // 개별 기능 설정 (기본값은 true)
+      featureSwitches.autoQuality.checked = data[storageKeys.autoQuality] !== false;
+      featureSwitches.adPopup.checked = data[storageKeys.adPopup] !== false;
+      featureSwitches.autoUnmute.checked = data[storageKeys.autoUnmute] !== false;
+      
+      console.log("Briecheeze: 모든 설정을 불러왔습니다.", data);
     });
+  }
+
+  // 설정 값을 저장하는 함수
+  function saveSetting(key, value) {
+    chrome.storage.local.set({ [key]: value }, () => {
+      console.log(`Briecheeze: 설정 저장됨 - ${key}: ${value}`);
+      // 백그라운드 스크립트에 변경사항 알림 (선택적)
+      chrome.runtime.sendMessage({ type: 'settingChanged', key, value });
+    });
+  }
+
+  // --- 이벤트 리스너 설정 ---
+
+  // 메인 토글 스위치
+  toggleSwitch.addEventListener('change', () => {
+    saveSetting(storageKeys.mainToggle, toggleSwitch.checked);
   });
+
+  // 개별 기능 토글 스위치
+  for (const feature in featureSwitches) {
+    const key = storageKeys[feature];
+    const theSwitch = featureSwitches[feature];
+    if (theSwitch) {
+      theSwitch.addEventListener('change', (e) => {
+        saveSetting(key, e.target.checked);
+      });
+    }
+  }
+
+  // 설정 버튼 클릭
+  settingsBtn.addEventListener('click', () => {
+    advancedSettings.classList.toggle('visible');
+  });
+
+  // 초기 설정 로드
+  loadSettings();
 });
