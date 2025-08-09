@@ -104,8 +104,9 @@
                    items.find((i) => /\d+p/.test(i.textContent)); // Fallback to any available quality
 
         if (pick) {
-          pick.click();
-          console.log(`Briecheeze: Auto quality set to -> ${pick.textContent.trim()}`);
+          // Use KeyboardEvent for the most reliable interaction
+          pick.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+          console.log(`Briecheeze: Auto quality set to -> ${pick.textContent.trim()} using KeyboardEvent.`);
         } else {
            // If no quality option found, click the first one to close the menu
            if(items[0]) items[0].click();
