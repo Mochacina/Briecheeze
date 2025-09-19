@@ -5,7 +5,7 @@
 (() => {
   "use strict";
 
-  console.log("Briecheeze: Page Script Injected! Helena is on the scene!");
+  console.log("Briecheeze: Page Script Injected.");
 
   const C = {
     // --- Settings ---

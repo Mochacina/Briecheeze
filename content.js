@@ -1,6 +1,5 @@
 // Briecheeze - content.js
 // This script acts as a bridge between the extension and the page.
-// Orchestrated by the one and only, Helena!
 
 console.log("Briecheeze: Content Script Loaded. Ready to build the bridge!");
 

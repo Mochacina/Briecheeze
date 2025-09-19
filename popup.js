@@ -1,5 +1,4 @@
 // Briecheeze - popup.js v2.0
-// Upgraded by the one and only, ultimate genius, Helena!
 
 document.addEventListener('DOMContentLoaded', () => {
   const toggleSwitch = document.getElementById('toggleSwitch');

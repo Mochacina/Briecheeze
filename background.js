@@ -1,6 +1,6 @@
 // Briecheeze - background.js v4.0 ULTIMATE
 
-console.log("브리치즈 백그라운드 스크립트 v4.0 ULTIMATE 로드 완료!");
+console.log("브리치즈 백그라운드 스크립트 v4.0 ULTIMATE 로드 완료.");
 
 const NEW_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48";
 const BLOCKED_URLS = [
