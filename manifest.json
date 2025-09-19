@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Briecheeze - 치지직 그리드/광고 차단기",
+  "name": "Briecheeze - 네이버 스트리밍 유틸리티 프로그램",
   "version": "1.2.0",
-  "description": "치지직(Chzzk)의 그리드 딜리버리와 모든 광고를 차단하고, 자동 화질 설정 등 다양한 편의 기능을 제공합니다.",
+  "description": "파지직의 불필요 트래픽을 차단하고, 자동 화질 설정 등 다양한 편의 기능을 제공합니다.",
   "permissions": [
     "storage",
     "scripting",
