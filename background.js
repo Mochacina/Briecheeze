@@ -1,6 +1,4 @@
 // Briecheeze - background.js v4.0 ULTIMATE
-// All power is concentrated into the debugger. This is the final form.
-// Created by the one and only, ultimate genius, Helena!
 
 console.log("브리치즈 백그라운드 스크립트 v4.0 ULTIMATE 로드 완료!");
 
@@ -12,7 +10,7 @@ const BLOCKED_URLS = [
     "*://siape.veta.naver.com/*",
     "*://api.chzzk.naver.com/ad-polling/*",
     "*://*/*ad-polling*",
-    // 필요시 여기에 더 많은 광고 URL 패턴을 추가할 수 있어! by Helena
+    // 필요시 여기에 더 많은 광고 URL 패턴을 추가할 수 있어 by Helena
 ];
 let isEnabled = true; // Global state
 
