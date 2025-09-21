@@ -4,12 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Element References ---
   const toggleSwitch = document.getElementById('toggleSwitch');
   const settingsBtn = document.getElementById('settingsBtn');
+  const rulesBtn = document.getElementById('rulesBtn');
   const advancedSettings = document.getElementById('advancedSettings');
+  const rulesSettings = document.getElementById('rulesSettings');
   const autoUnmuteSwitch = document.getElementById('autoUnmuteSwitch');
   const autoVolumeContainer = document.getElementById('autoVolumeContainer');
   const autoVolumeSwitch = document.getElementById('autoVolumeSwitch');
   const volumeSlider = document.getElementById('volumeSlider');
   const volumeValueLabel = document.getElementById('volumeValue');
+  const rulesList = document.getElementById('rulesList');
+  const newRuleInput = document.getElementById('newRuleInput');
+  const addRuleBtn = document.getElementById('addRuleBtn');
 
   const featureSwitches = {
     autoQuality: document.getElementById('autoQualitySwitch'),
@@ -25,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoUnmute: 'brie_autoUnmute',
     autoVolume: 'brie_autoVolume',
     volumeLevel: 'brie_volumeLevel',
+    customRules: 'customRules',
   };
 
   // --- Functions ---
@@ -34,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     autoVolumeContainer.classList.toggle('disabled', !isUnmuteEnabled);
   }
 
-  // Load all settings from storage and update UI
+  // 설정 값을 불러와 UI에 반영하는 함수
   function loadSettings() {
-    const keysToGet = Object.values(storageKeys);
+    const keysToGet = Object.values(storageKeys).filter(k => k !== 'customRules');
     chrome.storage.local.get(keysToGet, (data) => {
       // 메인 토글 설정
       toggleSwitch.checked = data[storageKeys.mainToggle] !== false;
@@ -68,6 +74,78 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function saveRules(rules) {
+    chrome.storage.local.set({ [storageKeys.customRules]: rules }, () => {
+      console.log('Briecheeze: 사용자 규칙이 저장되었습니다.');
+      chrome.runtime.sendMessage({ type: 'rulesUpdated' });
+    });
+  }
+
+  function renderRules(rules) {
+    rulesList.innerHTML = '';
+    rules.forEach((rule, index) => {
+      const li = document.createElement('li');
+      const ruleText = document.createElement('span');
+      ruleText.className = 'rule-text';
+      ruleText.textContent = rule;
+
+      ruleText.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.className = 'rule-input';
+        input.type = 'text';
+        input.value = rule;
+        li.replaceChild(input, ruleText);
+        input.focus();
+
+        const saveChanges = () => {
+          const newRule = input.value.trim();
+          if (newRule && newRule !== rule) {
+            rules[index] = newRule;
+            saveRules(rules);
+            renderRules(rules);
+          } else {
+            li.replaceChild(ruleText, input);
+          }
+        };
+
+        input.addEventListener('blur', saveChanges);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            saveChanges();
+          }
+        });
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-rule-btn';
+      deleteBtn.textContent = '×';
+      deleteBtn.addEventListener('click', () => {
+        rules.splice(index, 1);
+        saveRules(rules);
+        renderRules(rules);
+      });
+
+      li.appendChild(ruleText);
+      li.appendChild(deleteBtn);
+      rulesList.appendChild(li);
+    });
+  }
+
+  function loadRules() {
+    chrome.storage.local.get(storageKeys.customRules, (data) => {
+      if (data.customRules) {
+        renderRules(data.customRules);
+      } else {
+        fetch(chrome.runtime.getURL('rules.json'))
+          .then(res => res.json())
+          .then(json => {
+            renderRules(json.blockedUrls);
+            chrome.storage.local.set({ [storageKeys.customRules]: json.blockedUrls });
+          });
+      }
+    });
+  }
+
   // --- 이벤트 리스너 설정 ---
 
   // 메인 토글 스위치
@@ -77,7 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Settings button
   settingsBtn.addEventListener('click', () => {
-    advancedSettings.classList.toggle('visible');
+    rulesSettings.style.display = 'none';
+    advancedSettings.style.display = advancedSettings.style.display === 'block' ? 'none' : 'block';
+  });
+
+  // Rules button
+  rulesBtn.addEventListener('click', () => {
+    advancedSettings.style.display = 'none';
+    rulesSettings.style.display = rulesSettings.style.display === 'block' ? 'none' : 'block';
+    if (rulesSettings.style.display === 'block') {
+        loadRules();
+    }
   });
 
   // Auto Unmute switch (controls Auto Volume UI)
@@ -104,6 +192,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   volumeSlider.addEventListener('change', (e) => {
     saveSetting(storageKeys.volumeLevel, parseInt(e.target.value, 10));
+  });
+
+  // Add Rule button
+  addRuleBtn.addEventListener('click', () => {
+    const newRule = newRuleInput.value.trim();
+    if (newRule) {
+      chrome.storage.local.get(storageKeys.customRules, (data) => {
+        const rules = data.customRules || [];
+        if (!rules.includes(newRule)) {
+            rules.push(newRule);
+            saveRules(rules);
+            renderRules(rules);
+            newRuleInput.value = '';
+        }
+      });
+    }
   });
 
   // 초기 설정 로드

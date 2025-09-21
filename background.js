@@ -8,14 +8,24 @@ let isEnabled = true; // Global state
 
 // --- Rule Loader ---
 async function loadBlockRules() {
-  try {
-    const response = await fetch(chrome.runtime.getURL('rules.json'));
-    const data = await response.json();
-    BLOCKED_URLS = data.blockedUrls;
-    console.log('[Briecheeze] 차단 규칙을 성공적으로 불러왔습니다.', BLOCKED_URLS);
-  } catch (error) {
-    console.error('[Briecheeze] 차단 규칙 파일(rules.json)을 불러오는 데 실패했습니다.', error);
-  }
+  chrome.storage.local.get('customRules', async (data) => {
+    if (data.customRules) {
+      BLOCKED_URLS = data.customRules;
+      console.log('[Briecheeze] 저장된 사용자 규칙을 불러왔습니다.', BLOCKED_URLS);
+    } else {
+      // No custom rules found, load from default file
+      try {
+        const response = await fetch(chrome.runtime.getURL('rules.json'));
+        const defaultRules = await response.json();
+        BLOCKED_URLS = defaultRules.blockedUrls;
+        // Save default rules to storage for the first time
+        chrome.storage.local.set({ customRules: BLOCKED_URLS });
+        console.log('[Briecheeze] 기본 차단 규칙을 불러와 저장했습니다.', BLOCKED_URLS);
+      } catch (error) {
+        console.error('[Briecheeze] 기본 차단 규칙 파일(rules.json)을 불러오는 데 실패했습니다.', error);
+      }
+    }
+  });
 }
 
 // --- Debugger Control Functions ---
@@ -103,13 +113,24 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.hasOwnProperty('isEnabled')) {
-        const newStatus = message.isEnabled;
+    if (message.type === 'settingChanged' && message.key === 'isEnabled') {
+        const newStatus = message.value;
         console.log(`[Briecheeze] 팝업으로부터 상태 변경 메시지 수신: ${newStatus}`);
-        chrome.storage.local.set({ isEnabled: newStatus }, () => {
-            setEnabled(newStatus);
-            sendResponse({ status: "success", isEnabled: newStatus });
+        setEnabled(newStatus);
+        // Re-apply settings to all chzzk tabs
+        chrome.tabs.query({ url: "*://chzzk.naver.com/*" }, (tabs) => {
+            tabs.forEach(tab => applyDebuggerSettings(tab.id, newStatus));
         });
+        sendResponse({ status: "success" });
+        return true;
+    } else if (message.type === 'rulesUpdated') {
+        console.log('[Briecheeze] 사용자 규칙 변경 메시지 수신. 규칙을 다시 적용합니다.');
+        loadBlockRules().then(() => {
+            chrome.tabs.query({ url: "*://chzzk.naver.com/*" }, (tabs) => {
+                tabs.forEach(tab => applyDebuggerSettings(tab.id, isEnabled));
+            });
+        });
+        sendResponse({ status: "success" });
         return true;
     }
 });

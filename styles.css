@@ -242,3 +242,86 @@ input:checked + .slider:before {
   cursor: pointer;
   border-radius: 50%;
 }
+
+/* --- Custom Rules UI by Helena --- */
+
+.rules-list-container {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+#rulesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#rulesList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+#rulesList li:last-child {
+  border-bottom: none;
+}
+
+#rulesList .rule-text {
+  flex-grow: 1;
+  cursor: pointer;
+  word-break: break-all;
+  margin-right: 10px;
+}
+
+#rulesList .rule-input {
+  flex-grow: 1;
+  font-size: 13px;
+  border: 1px solid #2196F3;
+  padding: 2px 4px;
+  margin-right: 10px;
+}
+
+#rulesList .delete-rule-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ff5252;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.rules-add-container {
+  display: flex;
+  align-items: center;
+}
+
+#newRuleInput {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+#addRuleBtn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  padding: 4px 4px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#addRuleBtn:hover {
+  opacity: 0.9;
+}
