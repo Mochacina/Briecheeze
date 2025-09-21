@@ -13,6 +13,8 @@
       autoQuality: true,
       adPopup: true,
       autoUnmute: true,
+      autoVolume: true,
+      volumeLevel: 50,
     },
     
     // --- Selectors ---
@@ -68,10 +70,20 @@
   window.addEventListener('message', (event) => {
     if (event.source === window && event.data.type === 'BRIECHEESE_SETTINGS_UPDATE') {
       console.log('Briecheeze: Received settings update from content script', event.data.settings);
+      const oldSettings = { ...C.settings };
       Object.assign(C.settings, event.data.settings);
-      // If quality setting changed, re-apply it
-      if(event.data.settings.autoQuality) {
-        quality.applyPreferred();
+      
+      // 설정 변경 시 즉시 적용 로직
+      const video = document.querySelector('video');
+      if (video) {
+        // 볼륨 설정이 변경되었을 경우
+        if (C.settings.autoUnmute && C.settings.autoVolume) {
+            mediaControlHandler.apply(video);
+        }
+        // 화질 설정이 변경되었을 경우
+        if (C.settings.autoQuality && !oldSettings.autoQuality) {
+            quality.applyPreferred();
+        }
       }
     }
   });
@@ -159,12 +171,23 @@
     }
   };
 
-  const unmuteHandler = {
-    unmute(video) {
-      if (!C.settings.autoUnmute) return;
-      if (video.muted) {
-        video.muted = false;
-        console.log("Briecheeze: Video unmuted.");
+  const mediaControlHandler = {
+    apply(video) {
+      // Auto Unmute
+      if (C.settings.autoUnmute) {
+        if (video.muted) {
+          video.muted = false;
+          console.log("Briecheeze: Video unmuted.");
+        }
+
+        // Auto Volume (only if unmute is on)
+        if (C.settings.autoVolume) {
+          const targetVolume = C.settings.volumeLevel / 100;
+          if (video.volume !== targetVolume) {
+            video.volume = targetVolume;
+            console.log(`Briecheeze: Volume set to ${C.settings.volumeLevel}%`);
+          }
+        }
       }
     }
   };
@@ -189,7 +212,7 @@
         // Video check
         const video = node.matches(C.selectors.video) ? node : node.querySelector(C.selectors.video);
         if (video) {
-          unmuteHandler.unmute(video);
+          mediaControlHandler.apply(video);
           quality.startMonitoring(video);
           // Try to apply quality once when video appears
           setTimeout(() => quality.applyPreferred(), 1000);

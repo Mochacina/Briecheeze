@@ -21,7 +21,9 @@ injectScript('page_script.js');
 const storageKeys = [
   'brie_autoQuality',
   'brie_adPopup',
-  'brie_autoUnmute'
+  'brie_autoUnmute',
+  'brie_autoVolume',
+  'brie_volumeLevel'
 ];
 
 // Listen for requests from the page script
@@ -35,6 +37,8 @@ window.addEventListener('message', (event) => {
           autoQuality: settings.brie_autoQuality !== false,
           adPopup: settings.brie_adPopup !== false,
           autoUnmute: settings.brie_autoUnmute !== false,
+          autoVolume: settings.brie_autoVolume !== false,
+          volumeLevel: settings.brie_volumeLevel === undefined ? 50 : settings.brie_volumeLevel,
         }
       }, '*');
     });

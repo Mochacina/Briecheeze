@@ -5,7 +5,6 @@
   "description": "파지직의 불필요 트래픽을 차단하고, 자동 화질 설정 등 다양한 편의 기능을 제공합니다.",
   "permissions": [
     "storage",
-    "scripting",
     "debugger",
     "tabs"
   ],
@@ -37,7 +36,10 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["page_script.js"],
+      "resources": [
+        "page_script.js",
+        "rules.json"
+      ],
       "matches": ["*://chzzk.naver.com/*"]
     }
   ]

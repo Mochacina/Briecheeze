@@ -2,17 +2,21 @@
 
 console.log("브리치즈 백그라운드 스크립트 v4.0 ULTIMATE 로드 완료.");
 
-const NEW_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48";
-const BLOCKED_URLS = [
-    "*://*.ad.naver.com/*",
-    "*://adcr.naver.com/*",
-    "*://*.veta.naver.com/*",
-    "*://siape.veta.naver.com/*",
-    "*://api.chzzk.naver.com/ad-polling/*",
-    "*://*/*ad-polling*",
-    // 필요시 여기에 더 많은 광고 URL 패턴을 추가할 수 있어 by Helena
-];
+const NEW_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 OPR/110.0.0.0";
+let BLOCKED_URLS = [];
 let isEnabled = true; // Global state
+
+// --- Rule Loader ---
+async function loadBlockRules() {
+  try {
+    const response = await fetch(chrome.runtime.getURL('rules.json'));
+    const data = await response.json();
+    BLOCKED_URLS = data.blockedUrls;
+    console.log('[Briecheeze] 차단 규칙을 성공적으로 불러왔습니다.', BLOCKED_URLS);
+  } catch (error) {
+    console.error('[Briecheeze] 차단 규칙 파일(rules.json)을 불러오는 데 실패했습니다.', error);
+  }
+}
 
 // --- Debugger Control Functions ---
 
@@ -46,7 +50,9 @@ function applyDebuggerSettings(tabId, shouldEnable) {
             chrome.debugger.sendCommand({ tabId }, "Network.setUserAgentOverride", { userAgent: shouldEnable ? NEW_USER_AGENT : "" });
             
             // 광고 URL 차단
-            chrome.debugger.sendCommand({ tabId }, "Network.setBlockedURLs", { urls: shouldEnable ? BLOCKED_URLS : [] });
+            if (BLOCKED_URLS.length > 0) {
+              chrome.debugger.sendCommand({ tabId }, "Network.setBlockedURLs", { urls: shouldEnable ? BLOCKED_URLS : [] });
+            }
 
             console.log(`[Briecheeze] Debugger 설정 적용 완료 (활성화: ${shouldEnable})`);
 
@@ -108,27 +114,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-// --- State Initialization ---
+// --- State and Rule Initialization ---
 
-// 1. On Install: Set default state to enabled
+function initialize() {
+    loadBlockRules();
+    chrome.storage.local.get({ isEnabled: true }, (data) => {
+        isEnabled = data.isEnabled;
+        console.log(`[Briecheeze] 초기 상태 로드: ${isEnabled}`);
+    });
+}
+
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === 'install') {
         console.log("[Briecheeze] 확장 프로그램 설치됨. 기본값(활성화)으로 설정합니다.");
         chrome.storage.local.set({ isEnabled: true });
-        isEnabled = true;
     }
+    initialize();
 });
 
-// 2. On Browser Startup: Load state from storage
 chrome.runtime.onStartup.addListener(() => {
-    chrome.storage.local.get({ isEnabled: true }, (data) => {
-        isEnabled = data.isEnabled;
-        console.log(`[Briecheeze] 브라우저 시작 시 상태 로드: ${isEnabled}`);
-    });
+    initialize();
 });
 
-// 3. On Extension Load/Reload: Load state from storage
-// This covers cases like extension updates or manual reloads.
-chrome.storage.local.get({ isEnabled: true }, (data) => {
-    isEnabled = data.isEnabled;
-});
+// Initialize on script load as well for reloads
+initialize();

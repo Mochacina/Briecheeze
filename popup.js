@@ -1,14 +1,21 @@
 // Briecheeze - popup.js v2.0
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Element References ---
   const toggleSwitch = document.getElementById('toggleSwitch');
   const settingsBtn = document.getElementById('settingsBtn');
   const advancedSettings = document.getElementById('advancedSettings');
+  const autoUnmuteSwitch = document.getElementById('autoUnmuteSwitch');
+  const autoVolumeContainer = document.getElementById('autoVolumeContainer');
+  const autoVolumeSwitch = document.getElementById('autoVolumeSwitch');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeValueLabel = document.getElementById('volumeValue');
 
   const featureSwitches = {
     autoQuality: document.getElementById('autoQualitySwitch'),
     adPopup: document.getElementById('adPopupSwitch'),
-    autoUnmute: document.getElementById('autoUnmuteSwitch'),
+    autoUnmute: autoUnmuteSwitch,
+    autoVolume: autoVolumeSwitch,
   };
 
   const storageKeys = {
@@ -16,9 +23,18 @@ document.addEventListener('DOMContentLoaded', () => {
     autoQuality: 'brie_autoQuality',
     adPopup: 'brie_adPopup',
     autoUnmute: 'brie_autoUnmute',
+    autoVolume: 'brie_autoVolume',
+    volumeLevel: 'brie_volumeLevel',
   };
 
-  // 설정 값을 불러와 UI에 반영하는 함수
+  // --- Functions ---
+
+  // Update auto volume UI based on auto unmute state
+  function updateAutoVolumeUI(isUnmuteEnabled) {
+    autoVolumeContainer.classList.toggle('disabled', !isUnmuteEnabled);
+  }
+
+  // Load all settings from storage and update UI
   function loadSettings() {
     const keysToGet = Object.values(storageKeys);
     chrome.storage.local.get(keysToGet, (data) => {
@@ -29,6 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
       featureSwitches.autoQuality.checked = data[storageKeys.autoQuality] !== false;
       featureSwitches.adPopup.checked = data[storageKeys.adPopup] !== false;
       featureSwitches.autoUnmute.checked = data[storageKeys.autoUnmute] !== false;
+      featureSwitches.autoVolume.checked = data[storageKeys.autoVolume] !== false;
+
+      // Volume slider
+      const volumeLevel = data[storageKeys.volumeLevel] === undefined ? 50 : data[storageKeys.volumeLevel];
+      volumeSlider.value = volumeLevel;
+      volumeValueLabel.textContent = volumeLevel;
+
+      // Set initial UI state for auto volume
+      updateAutoVolumeUI(featureSwitches.autoUnmute.checked);
       
       console.log("Briecheeze: 모든 설정을 불러왔습니다.", data);
     });
@@ -50,8 +75,20 @@ document.addEventListener('DOMContentLoaded', () => {
     saveSetting(storageKeys.mainToggle, toggleSwitch.checked);
   });
 
-  // 개별 기능 토글 스위치
-  for (const feature in featureSwitches) {
+  // Settings button
+  settingsBtn.addEventListener('click', () => {
+    advancedSettings.classList.toggle('visible');
+  });
+
+  // Auto Unmute switch (controls Auto Volume UI)
+  autoUnmuteSwitch.addEventListener('change', (e) => {
+    const isEnabled = e.target.checked;
+    saveSetting(storageKeys.autoUnmute, isEnabled);
+    updateAutoVolumeUI(isEnabled);
+  });
+
+  // Other feature switches
+  ['autoQuality', 'adPopup', 'autoVolume'].forEach(feature => {
     const key = storageKeys[feature];
     const theSwitch = featureSwitches[feature];
     if (theSwitch) {
@@ -59,11 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSetting(key, e.target.checked);
       });
     }
-  }
+  });
 
-  // 설정 버튼 클릭
-  settingsBtn.addEventListener('click', () => {
-    advancedSettings.classList.toggle('visible');
+  // Volume slider
+  volumeSlider.addEventListener('input', (e) => {
+    volumeValueLabel.textContent = e.target.value;
+  });
+  volumeSlider.addEventListener('change', (e) => {
+    saveSetting(storageKeys.volumeLevel, parseInt(e.target.value, 10));
   });
 
   // 초기 설정 로드
