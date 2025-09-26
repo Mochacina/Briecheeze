@@ -19,7 +19,7 @@ Briecheeze는 네이버 스트리밍 플랫폼 시청 경험을 최상의 수준
 
 ## 설치 방법 *Installation*
 - 더 이상 ZIP 파일로 직접 설치하실 필요가 없습니다. 크롬 웹 스토어에 정식으로 업로드 되었습니다.
-- [https://chromewebstore.google.com/detail/fhgjnnlbicklacccfdgbahbhhhmpkeik?utm_source=item-share-cb]
+- [웹 스토어에서 다운로드](https://chromewebstore.google.com/detail/fhgjnnlbicklacccfdgbahbhhhmpkeik?utm_source=item-share-cb)
 
 ## 업데이트 내역 *Update History*
 
