@@ -24,6 +24,7 @@
       qualityMenu: 'div[class*="pzp-pc-setting-intro-quality"]',
       qualityItems: 'li.pzp-ui-setting-quality-item[role="menuitem"]',
       video: 'video',
+      extensionModal: 'div.live_information_video_layer__Vd4JD',
     },
 
     // --- Regex ---
@@ -195,9 +196,20 @@
   // --- Observer ---
   
   const observer = new MutationObserver((mutations) => {
+    // Prevent reload loop
+    if (window.briecheezeReloading) return;
+
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== 1) continue;
+
+        // Extension installation modal check
+        if (node.matches(C.selectors.extensionModal) || node.querySelector(C.selectors.extensionModal)) {
+          console.log('[Briecheeze] 확장 프로그램 설치 유도 창 감지, 페이지를 1회 새로고침합니다.');
+          window.briecheezeReloading = true;
+          location.reload();
+          return; // Stop further processing
+        }
 
         // Ad popup check
         if (node.matches(C.selectors.popup) && C.regex.adBlockDetect.test(node.textContent)) {
