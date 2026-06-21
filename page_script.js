@@ -19,7 +19,7 @@
     
     // --- Selectors ---
     selectors: {
-      popup: 'div[class^="popup_container"]',
+      popup: 'div[class^="popup_container"], div[role="alertdialog"][aria-modal="true"]',
       qualityBtn: 'button[command="SettingCommands.Toggle"]',
       qualityMenu: 'div[class*="pzp-pc-setting-intro-quality"]',
       qualityItems: 'li.pzp-ui-setting-quality-item[role="menuitem"]',

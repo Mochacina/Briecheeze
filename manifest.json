@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Briecheeze - 네이버 스트리밍 유틸리티 프로그램",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "파지직의 불필요 트래픽을 차단하고, 자동 화질 설정 등 다양한 편의 기능을 제공합니다.",
   "permissions": [
     "storage",
